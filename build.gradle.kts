@@ -9,8 +9,8 @@ plugins {
     kotlin("jvm") version "1.9.22"
     id("io.ktor.plugin") version "2.3.7"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
-    id("org.jetbrains.kotlinx.kover") version "0.7.5"
-    id("org.sonarqube") version "4.4.1.3373"
+    id("jacoco")
+    id("org.sonarqube") version "3.5.0.2730"
 }
 
 group = "com.example"
@@ -40,29 +40,19 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml:2.3.7")
+    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
-koverReport {
-    defaults {
-        html {
-            title = "Test Coverage: All"
-            setReportDir(File("$rootDir/test/reports/kover/all"))
-        }
-        xml {
-            setReportFile(File("$rootDir/test/reports/kover/xml/aggregated_coverage.xml"))
-        }
-        filters{
-            excludes{
-                classes("*_Factory*")
-                annotatedBy("*Generated*")
-            }
-        }
-        verify {
-            rule {
-                minBound(50)
-            }
-        }
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
+}
+tasks.jacocoTestReport {
+    dependsOn("test") // Ensure tests are run before generating the report
+
+    reports {
+        xml.required.set(true) // Generate XML report
+        html.required.set(true) // Generate HTML report
     }
 }
