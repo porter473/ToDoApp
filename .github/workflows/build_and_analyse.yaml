@@ -36,3 +36,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar --info
+      - name: Comment on PR
+          run: |
+            PR_URL="https://github.com/${GITHUB_REPOSITORY}/pull/${{ github.event.pull_request.number }}"
+            DASHBOARD_URL="https://sonarcloud.io/dashboard?id=porter_todo-app&pullRequest=${{ github.event.pull_request.number }}"
+            COMMENT_BODY="Thank you for the pull request! View the SonarCloud dashboard [here](${PR_URL})"
+            
+            curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                 -H "Content-Type: application/json" \
+                 -d "{\"body\":\"$COMMENT_BODY\"}" \
+                 "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments"
+      - name: Check SonarQube Quality Gate
+          run: |
+            PULL_REQUEST_ID=${{ github.event.pull_request.number }}
+            SONAR_STATUS=$(curl 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=porter_todo-app&pullRequest=$PULL_REQUEST_ID' | jq -r .projectStatus.status)
+            if [ "$SONAR_STATUS" != "OK" ]; then
+              echo "SonarQube Quality Gate check failed. PR cannot be merged."
+              exit 1
+            fi
