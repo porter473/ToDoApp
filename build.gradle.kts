@@ -62,5 +62,6 @@ sonar {
         property("sonar.projectKey", "porter_todo-app")
         property("sonar.organization", "porter")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
