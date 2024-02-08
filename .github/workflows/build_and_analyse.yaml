@@ -38,14 +38,14 @@ jobs:
         run: ./gradlew build sonar --info
       - name: Comment on PR
         run: |
-          PR_URL="https://github.com/${GITHUB_REPOSITORY}/pull/${{ github.event.pull_request.number }}"
+          PR_URL="https://github.com/porter473/ToDoApp/pull/${{ github.event.pull_request.number }}"
           DASHBOARD_URL="https://sonarcloud.io/dashboard?id=porter_todo-app&pullRequest=${{ github.event.pull_request.number }}"
           COMMENT_BODY="Thank you for the pull request! View the SonarCloud dashboard [here](${PR_URL})"
           
           curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                -H "Content-Type: application/json" \
                -d "{\"body\":\"$COMMENT_BODY\"}" \
-               "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${{ github.event.pull_request.number }}/comments"
+               "https://api.github.com/repos/porter473/ToDoApp/issues/${{ github.event.pull_request.number }}/comments"
       - name: Check SonarQube Quality Gate
         run: |
           PULL_REQUEST_ID=${{ github.event.pull_request.number }}
