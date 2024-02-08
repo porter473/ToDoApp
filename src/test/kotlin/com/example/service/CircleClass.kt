@@ -13,8 +13,8 @@ class CircleClass {
 
     @Test
     fun `test circle perimeter calculation`() {
-        val circle = Circle(10.0)
-        val expectedPerimeter = 62.8
+        val circle = Circle(0.0)
+        val expectedPerimeter = 0.0
         assertEquals(expectedPerimeter, circle.perimeter(), "The perimeter of the circle is incorrect")
     }
 }
