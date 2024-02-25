@@ -73,7 +73,7 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
 
           #Quality Gate Check
-          if [ QG_STATUS != "OK" ]; then
+          if [ "$QG_STATUS" != "OK" ]; then
             echo "SonarQube Quality Gate check failed. PR cannot be merged."
             exit 1
           fi
