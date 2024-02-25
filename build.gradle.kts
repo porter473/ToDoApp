@@ -10,7 +10,7 @@ plugins {
     id("io.ktor.plugin") version "2.3.7"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
     id("jacoco")
-    id("org.sonarqube") version "4.0.0.2929"
+    id("org.sonarqube") version "4.4.1.3373"
 }
 
 group = "com.example"
@@ -62,5 +62,6 @@ sonar {
         property("sonar.projectKey", "porter_todo-app")
         property("sonar.organization", "porter")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
