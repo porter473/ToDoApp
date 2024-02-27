@@ -10,8 +10,7 @@ plugins {
     id("io.ktor.plugin") version "2.3.7"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
     id("jacoco")
-    id("org.sonarqube") version "4.0.0.2929"
-}
+    id("org.sonarqube") version "4.4.1.3373"}
 
 group = "com.example"
 version = "0.0.1"
@@ -59,8 +58,8 @@ tasks.jacocoTestReport {
 
 sonar {
     properties {
-        property("sonar.projectKey", "porter_todo-app")
-        property("sonar.organization", "porter")
-        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.projectKey", "to-do-app")
+        property("sonar.projectName", "to-do-app")
+        property("sonar.host.url", "https://1f35-103-139-158-126.ngrok-free.app")
     }
 }
