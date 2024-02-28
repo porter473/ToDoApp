@@ -34,8 +34,10 @@ jobs:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
-      - name: Build and analyze
-        run: ./gradlew build sonar --info
+      - name: Build project
+        run: ./gradlew build
+      - name: Sonar Analysis
+        run: ./gradlew sonar --info
       - name: Comment on PR and Check SonarQube Quality Gate
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
