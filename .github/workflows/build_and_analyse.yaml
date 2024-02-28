@@ -10,6 +10,9 @@ jobs:
   build:
     name: Build and analyze on SonarCloud
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+      SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -32,7 +35,40 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         run: ./gradlew build sonar --info
+      - name: Comment on PR and Check SonarQube Quality Gate
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PROJECT_ID: to-do-app
+          SONARQUBE_URL: https://1f35-103-139-158-126.ngrok-free.app
+        run: |
+          # Fetch quality gate status and metrics
+          API_RESPONSE=$(curl -H "Authorization: Bearer ${SONAR_TOKEN}" -s "${SONARQUBE_URL}/api/qualitygates/project_status?projectKey=${PROJECT_ID}&pullRequest=${PR_NUMBER}")
+          # Extract overall quality gate status
+          QG_STATUS=$(echo $API_RESPONSE | jq -r '.projectStatus.status')
+          # Start constructing comment body
+          COMMENT_BODY="Thank you for the pull request! The Quality Gate status is **$QG_STATUS**.\n\n**Key Metrics:**\n"
+          # Dynamically add each metric and its status to the comment
+          for row in $(echo "${API_RESPONSE}" | jq -r '.projectStatus.conditions[] | @base64'); do
+            _jq() {
+              echo ${row} | base64 --decode | jq -r ${1}
+            }
+            METRIC_KEY=$(_jq '.metricKey')
+            METRIC_STATUS=$(_jq '.status')
+            ACTUAL_VALUE=$(_jq '.actualValue')
+            ERROR_THRESHOLD=$(_jq '.errorThreshold')
+            COMMENT_BODY+="\n- $METRIC_KEY: $METRIC_STATUS (Actual: $ACTUAL_VALUE, Threshold: $ERROR_THRESHOLD)"
+          done
+          # Add link to SonarCloud dashboard
+          DASHBOARD_URL="${SONARQUBE_URL}/dashboard?id=${PROJECT_ID}&pullRequest=${PR_NUMBER}"
+          COMMENT_BODY+="\n\nPlease review the [SonarCloud dashboard](${DASHBOARD_URL}) for more detailed information."
+          # Post the comment on the PR
+          curl -X POST -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\":\"${COMMENT_BODY}\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+          #Quality Gate Check
+          if [ "$QG_STATUS" != "OK" ]; then
+            echo "SonarQube Quality Gate check failed. PR cannot be merged."
+            exit 1
+          fi
